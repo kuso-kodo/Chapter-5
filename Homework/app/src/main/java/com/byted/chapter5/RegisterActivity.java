@@ -46,8 +46,36 @@ public class RegisterActivity extends AppCompatActivity {
                     Toast.makeText(RegisterActivity.this, "密码不相等", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                // todo 做网络请求
 
+                Retrofit retrofit = new Retrofit.Builder()
+                        .baseUrl("https://wanandroid.com/")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+
+                ApiService apiService = retrofit.create(ApiService.class);
+                Call<RegisterResponse> registerResponseCall = apiService.register(name, password, repassword);
+                registerResponseCall.enqueue(
+                        new Callback<RegisterResponse>() {
+                            @Override
+                            public void onResponse(Call<RegisterResponse> call, Response<RegisterResponse> response) {
+                                RegisterResponse registerResponse = response.body();
+                                if(registerResponse == null) {
+                                    Toast.makeText(RegisterActivity.this, "注册失败：未知原因", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                if(registerResponse.errorCode != 0) {
+                                    Toast.makeText(RegisterActivity.this, "注册失败：" + registerResponse.errorMsg, Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                Toast.makeText(RegisterActivity.this, "注册成功", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onFailure(Call<RegisterResponse> call, Throwable t) {
+                                return;
+                            }
+                        }
+                );
 
             }
         });
